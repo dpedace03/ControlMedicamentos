@@ -10,38 +10,33 @@ const database = firebase.database();
 
 // ── Lista de medicamentos ── editala a tu gusto
 const MEDICAMENTOS = [
-    "Cafiaspirina",
-    "Tafirol 1 gr",
+    "Tafirol 1g",
     "Ibuprofeno 600",
-    "Tafirol DUO",
-    "Tafirol Espasmo",
-    "Buscapina",
+    "Cafiaspirina",
     "Sertal",
-    "Qura ",
+    "Buscapina",
     "Acemuk",
+    "Tafirol DUO",
 ];
 
 let todosLosRegistros = [];
+let periodoActivo = 'dia';
 
-// ── Detectar dispositivo desde User Agent ──
+// ── Detectar dispositivo ──
 function detectarDispositivo() {
     const ua = navigator.userAgent;
-    let os      = "Desconocido";
-    let device  = "Dispositivo desconocido";
+    let os = "Desconocido", device = "Dispositivo desconocido";
 
-    if (/iPhone/.test(ua))                          { device = "iPhone";  os = "iOS"; }
-    else if (/iPad/.test(ua))                       { device = "iPad";    os = "iOS"; }
-    else if (/Android/.test(ua) && /Mobile/.test(ua)) { device = "Android Phone"; os = "Android"; }
-    else if (/Android/.test(ua))                    { device = "Android Tablet"; os = "Android"; }
-    else if (/Windows/.test(ua))                    { device = "PC";      os = "Windows"; }
-    else if (/Macintosh/.test(ua))                  { device = "Mac";     os = "macOS"; }
-    else if (/Linux/.test(ua))                      { device = "PC";      os = "Linux"; }
+    if (/iPhone/.test(ua))                             { device = "iPhone";         os = "iOS"; }
+    else if (/iPad/.test(ua))                          { device = "iPad";           os = "iOS"; }
+    else if (/Android/.test(ua) && /Mobile/.test(ua)) { device = "Android Phone";  os = "Android"; }
+    else if (/Android/.test(ua))                       { device = "Android Tablet"; os = "Android"; }
+    else if (/Windows/.test(ua))                       { device = "PC";             os = "Windows"; }
+    else if (/Macintosh/.test(ua))                     { device = "Mac";            os = "macOS"; }
+    else if (/Linux/.test(ua))                         { device = "PC";             os = "Linux"; }
 
-    // Intentar leer modelo de Android
     const modelMatch = ua.match(/\(Linux.*?;\s*(.*?)\s*Build/);
-    if (modelMatch && os === "Android") {
-        device = modelMatch[1];
-    }
+    if (modelMatch && os === "Android") device = modelMatch[1];
 
     return `${device} / ${os}`;
 }
@@ -53,42 +48,39 @@ function mostrarSaludo(nombre) {
     if (hora >= 0 && hora < 13)       saludo = `☀️ ¡Buen día, ${nombre}!`;
     else if (hora >= 13 && hora < 20) saludo = `🌤️ ¡Buenas tardes, ${nombre}!`;
     else                               saludo = `🌙 ¡Buenas noches, ${nombre}!`;
-
     document.getElementById('saludo').textContent = saludo;
 }
 
-// ── Fecha y hora local como default ──
+// ── Fecha y hora local ──
 function actualizarValoresDefault() {
     const ahora = new Date();
-    const anio  = ahora.getFullYear();
-    const mes   = String(ahora.getMonth() + 1).padStart(2, '0');
-    const dia   = String(ahora.getDate()).padStart(2, '0');
+    const anio    = ahora.getFullYear();
+    const mes     = String(ahora.getMonth() + 1).padStart(2, '0');
+    const dia     = String(ahora.getDate()).padStart(2, '0');
     const horas   = String(ahora.getHours()).padStart(2, '0');
     const minutos = String(ahora.getMinutes()).padStart(2, '0');
 
-    const fechaInput = document.getElementById('fecha');
-    const horaInput  = document.getElementById('hora');
-    if (fechaInput) fechaInput.value = `${anio}-${mes}-${dia}`;
-    if (horaInput)  horaInput.value  = `${horas}:${minutos}`;
+    const f = document.getElementById('fecha');
+    const h = document.getElementById('hora');
+    if (f) f.value = `${anio}-${mes}-${dia}`;
+    if (h) h.value = `${horas}:${minutos}`;
 }
 
-// ── Poblar selectores de medicamentos ──
+// ── Poblar selectores ──
 function poblarSelectores() {
-    const selectMed       = document.getElementById('medicamento');
-    const selectFiltroMed = document.getElementById('filtroMed');
+    const selectMed        = document.getElementById('medicamento');
+    const selectFiltroMed  = document.getElementById('filtroMed');
 
     MEDICAMENTOS.forEach(med => {
-        const opt1 = document.createElement('option');
-        opt1.value = med; opt1.textContent = med;
-        selectMed.appendChild(opt1);
-
-        const opt2 = document.createElement('option');
-        opt2.value = med; opt2.textContent = med;
-        selectFiltroMed.appendChild(opt2);
+        [selectMed, selectFiltroMed].forEach((sel, i) => {
+            const opt = document.createElement('option');
+            opt.value = med; opt.textContent = med;
+            sel.appendChild(opt);
+        });
     });
 }
 
-// ── Renderizar registros en pantalla ──
+// ── Renderizar historial ──
 function renderizarRegistros(registros) {
     const contenedor = document.getElementById('listaMedicamentos');
     contenedor.innerHTML = "";
@@ -110,7 +102,7 @@ function renderizarRegistros(registros) {
     });
 }
 
-// ── Aplicar filtros sobre los registros locales ──
+// ── Aplicar filtros ──
 function aplicarFiltros() {
     const filtroFecha = document.getElementById('filtrFecha').value;
     const filtroMed   = document.getElementById('filtroMed').value;
@@ -122,7 +114,58 @@ function aplicarFiltros() {
     renderizarRegistros(filtrados);
 }
 
-// Ejecutar fecha/hora antes del onload
+// ── Calcular totales por período ──
+function calcularTotales(periodo) {
+    const ahora = new Date();
+    const hoy   = ahora.toISOString().split('T')[0];
+
+    // Inicio de semana (lunes)
+    const diaSemana = ahora.getDay() === 0 ? 6 : ahora.getDay() - 1;
+    const inicioSemana = new Date(ahora);
+    inicioSemana.setDate(ahora.getDate() - diaSemana);
+    const inicioSemanaStr = inicioSemana.toISOString().split('T')[0];
+
+    // Inicio de mes
+    const inicioMes = `${ahora.getFullYear()}-${String(ahora.getMonth()+1).padStart(2,'0')}-01`;
+
+    let filtrados = todosLosRegistros.filter(r => {
+        if (periodo === 'dia')    return r.fecha === hoy;
+        if (periodo === 'semana') return r.fecha >= inicioSemanaStr && r.fecha <= hoy;
+        if (periodo === 'mes')    return r.fecha >= inicioMes && r.fecha <= hoy;
+        return false;
+    });
+
+    // Agrupar por medicamento
+    const conteo = {};
+    filtrados.forEach(r => {
+        conteo[r.medicamento] = (conteo[r.medicamento] || 0) + 1;
+    });
+
+    return conteo;
+}
+
+// ── Mostrar totales en el modal ──
+function mostrarTotales(periodo) {
+    const conteo     = calcularTotales(periodo);
+    const contenedor = document.getElementById('contenidoTotal');
+    const entradas   = Object.entries(conteo).sort((a, b) => b[1] - a[1]);
+
+    const labels = { dia: 'hoy', semana: 'esta semana', mes: 'este mes' };
+
+    if (entradas.length === 0) {
+        contenedor.innerHTML = `<p class="sin-datos">No hay registros ${labels[periodo]}.</p>`;
+        return;
+    }
+
+    contenedor.innerHTML = entradas.map(([med, count]) => `
+        <div class="fila-total">
+            <span class="med-nombre">${med}</span>
+            <span class="med-count">${count} toma${count !== 1 ? 's' : ''}</span>
+        </div>
+    `).join('');
+}
+
+// Ejecutar fecha antes del onload
 actualizarValoresDefault();
 
 window.onload = function() {
@@ -132,20 +175,18 @@ window.onload = function() {
     actualizarValoresDefault();
     poblarSelectores();
 
-    // Recuperar nombre guardado y mostrar saludo
+    // Nombre guardado y saludo
     const nombreGuardado = localStorage.getItem('nombre_med');
     if (nombreGuardado) {
         nombreInput.value = nombreGuardado;
         mostrarSaludo(nombreGuardado);
     }
-
-    // Actualizar saludo cuando el usuario escribe su nombre
     nombreInput.addEventListener('input', () => {
         if (nombreInput.value.trim()) mostrarSaludo(nombreInput.value.trim());
         else document.getElementById('saludo').textContent = "";
     });
 
-    // Leer registros en tiempo real desde Firebase
+    // Firebase: leer en tiempo real
     database.ref('registros').on('value', (snapshot) => {
         if (snapshot.exists()) {
             const datos = snapshot.val();
@@ -159,7 +200,7 @@ window.onload = function() {
             "<p style='text-align:center; color:#e74c3c;'>Error al leer: " + error.message + "</p>";
     });
 
-    // Filtros
+    // Filtros historial
     document.getElementById('filtrFecha').addEventListener('change', aplicarFiltros);
     document.getElementById('filtroMed').addEventListener('change', aplicarFiltros);
     document.getElementById('btnLimpiar').addEventListener('click', () => {
@@ -168,7 +209,34 @@ window.onload = function() {
         aplicarFiltros();
     });
 
-    // Guardar nuevo registro
+    // Botón flotante Total → abrir modal
+    document.getElementById('btnTotal').addEventListener('click', () => {
+        periodoActivo = 'dia';
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.tab-btn[data-periodo="dia"]').classList.add('active');
+        mostrarTotales('dia');
+        document.getElementById('modalTotal').style.display = 'flex';
+    });
+
+    // Cerrar modal
+    document.getElementById('cerrarModal').addEventListener('click', () => {
+        document.getElementById('modalTotal').style.display = 'none';
+    });
+    document.getElementById('modalTotal').addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
+
+    // Tabs del modal
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            periodoActivo = btn.dataset.periodo;
+            mostrarTotales(periodoActivo);
+        });
+    });
+
+    // Guardar registro
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -177,18 +245,18 @@ window.onload = function() {
 
         const nuevoRegistro = {
             nombre,
-            dispositivo:  detectarDispositivo(),
-            fecha:        document.getElementById('fecha').value,
-            hora:         document.getElementById('hora').value,
-            medicamento:  document.getElementById('medicamento').value,
-            cantidad:     document.getElementById('cantidad').value,
-            timestamp:    firebase.database.ServerValue.TIMESTAMP
+            dispositivo: detectarDispositivo(),
+            fecha:       document.getElementById('fecha').value,
+            hora:        document.getElementById('hora').value,
+            medicamento: document.getElementById('medicamento').value,
+            cantidad:    document.getElementById('cantidad').value,
+            timestamp:   firebase.database.ServerValue.TIMESTAMP
         };
 
         database.ref('registros').push(nuevoRegistro)
             .then(() => {
                 document.getElementById('medicamento').value = "";
-                document.getElementById('cantidad').value    = "";
+                document.getElementById('cantidad').value    = "1";
                 actualizarValoresDefault();
 
                 const divStatus = document.getElementById('statusMessage');

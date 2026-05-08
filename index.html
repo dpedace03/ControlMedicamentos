@@ -39,7 +39,7 @@
 
             <div class="input-group">
                 <label>Cantidad / Dosis</label>
-                <input type="text" id="cantidad" placeholder="Ej: 1 comprimido" required>
+                <input type="text" id="cantidad" placeholder="Ej: 1 comprimido" value="1" required>
             </div>
 
             <button type="submit" id="btnGuardar">Registrar Toma</button>
@@ -67,6 +67,25 @@
             <div id="listaMedicamentos">
                 <p style="text-align:center; color:#999;">Cargando registros...</p>
             </div>
+        </div>
+    </div>
+
+    <!-- Botón flotante Total -->
+    <button id="btnTotal" class="btn-flotante">📊 Total</button>
+
+    <!-- Modal Total -->
+    <div id="modalTotal" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>📊 Totales por medicamento</h3>
+                <button id="cerrarModal" class="btn-cerrar">✕</button>
+            </div>
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-periodo="dia">Hoy</button>
+                <button class="tab-btn" data-periodo="semana">Semana</button>
+                <button class="tab-btn" data-periodo="mes">Mes</button>
+            </div>
+            <div id="contenidoTotal"></div>
         </div>
     </div>
 
