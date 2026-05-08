@@ -10,13 +10,13 @@ const database = firebase.database();
 
 // ── Lista de medicamentos ── editala a tu gusto
 const MEDICAMENTOS = [
-    "Tafirol 1g",
     "Ibuprofeno 600",
+    "Tafirol 1 gr",
     "Cafiaspirina",
     "Sertal",
     "Buscapina",
-    "Acemuk",
-    "Tafirol DUO",
+    "Ibuprofeno 400mg",
+    "Paracetamol 500mg",
 ];
 
 let todosLosRegistros = [];
