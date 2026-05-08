@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Medicación</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>💊 Control de Medicación</h2>
+        
+        <form id="medForm">
+            <div class="input-group">
+                <label>Número de Celular</label>
+                <input type="tel" id="celular" placeholder="Ej: +54911..." required>
+            </div>
+
+            <div class="row">
+                <div class="input-group">
+                    <label>Fecha</label>
+                    <input type="date" id="fecha" required>
+                </div>
+                <div class="input-group">
+                    <label>Hora</label>
+                    <input type="time" id="hora" required>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Medicamento</label>
+                <input type="text" id="medicamento" placeholder="Nombre del remedio" required>
+            </div>
+
+            <div class="input-group">
+                <label>Cantidad / Dosis</label>
+                <input type="text" id="cantidad" placeholder="Ej: 1 comprimido" required>
+            </div>
+
+            <button type="submit" id="btnGuardar">Registrar Toma</button>
+        </form>
+
+        <div id="statusMessage"></div>
+
+        <div class="history-section">
+            <h3>📋 Historial de Tomas</h3>
+            <div id="listaMedicamentos">
+                <p style="text-align:center; color:#999;">Cargando registros...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="apps.js"></script>
+</body>
+</html>
