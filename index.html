@@ -8,12 +8,15 @@
 </head>
 <body>
     <div class="container">
+        <div id="saludo" class="saludo"></div>
+
         <h2>💊 Control de Medicación</h2>
         
         <form id="medForm">
             <div class="input-group">
-                <label>Número de Celular</label>
-                <input type="tel" id="celular" placeholder="Ej: +54911..." required>
+                <label>Tu nombre</label>
+                <input type="text" id="nombre" placeholder="Ej: María" required>
+                <small class="hint">Se recuerda en este dispositivo</small>
             </div>
 
             <div class="row">
@@ -29,7 +32,9 @@
 
             <div class="input-group">
                 <label>Medicamento</label>
-                <input type="text" id="medicamento" placeholder="Nombre del remedio" required>
+                <select id="medicamento" required>
+                    <option value="">-- Seleccioná un medicamento --</option>
+                </select>
             </div>
 
             <div class="input-group">
@@ -44,6 +49,21 @@
 
         <div class="history-section">
             <h3>📋 Historial de Tomas</h3>
+
+            <div class="filtros">
+                <div class="input-group">
+                    <label>Buscar por fecha</label>
+                    <input type="date" id="filtrFecha">
+                </div>
+                <div class="input-group">
+                    <label>Buscar por medicamento</label>
+                    <select id="filtroMed">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+                <button type="button" id="btnLimpiar" class="btn-secundario">Limpiar filtros</button>
+            </div>
+
             <div id="listaMedicamentos">
                 <p style="text-align:center; color:#999;">Cargando registros...</p>
             </div>

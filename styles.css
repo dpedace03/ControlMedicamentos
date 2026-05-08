@@ -9,7 +9,7 @@ body {
     background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
     padding: 20px;
 }
@@ -21,12 +21,27 @@ body {
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     width: 100%;
     max-width: 450px;
+    margin: auto;
+}
+
+.saludo {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #27ae60;
+    margin-bottom: 12px;
+    min-height: 24px;
 }
 
 h2 {
     color: #2c3e50;
     text-align: center;
     margin-bottom: 20px;
+}
+
+h3 {
+    color: #2c3e50;
+    margin-bottom: 12px;
 }
 
 .row {
@@ -47,13 +62,22 @@ label {
     font-size: 0.9rem;
 }
 
-input {
+input, select {
     width: 100%;
     padding: 12px;
     border: 2px solid #edf2f7;
     border-radius: 10px;
     font-size: 1rem;
     outline: none;
+    background: #fff;
+    color: #333;
+}
+
+.hint {
+    font-size: 0.75rem;
+    color: #aaa;
+    margin-top: 3px;
+    display: block;
 }
 
 button {
@@ -73,14 +97,34 @@ button:hover {
     background: #219150;
 }
 
+.btn-secundario {
+    padding: 10px;
+    background: #edf2f7;
+    color: #555;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.btn-secundario:hover {
+    background: #dce3ec;
+}
+
 .history-section {
     margin-top: 25px;
     border-top: 1px solid #eee;
     padding-top: 15px;
 }
 
+.filtros {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
 #listaMedicamentos {
-    max-height: 250px;
+    max-height: 300px;
     overflow-y: auto;
     margin-top: 10px;
 }
@@ -94,6 +138,19 @@ button:hover {
     font-size: 0.85rem;
 }
 
+.card-registro .dispositivo {
+    color: #aaa;
+    font-size: 0.75rem;
+    margin-top: 3px;
+}
+
+.sin-resultados {
+    text-align: center;
+    color: #999;
+    padding: 15px 0;
+    font-size: 0.9rem;
+}
+
 #statusMessage {
     text-align: center;
     margin-top: 10px;
@@ -101,4 +158,4 @@ button:hover {
 }
 
 .success { color: #27ae60; }
-.error { color: #e74c3c; }
+.error   { color: #e74c3c; }
