@@ -611,6 +611,9 @@ window.onload = function() {
     if (nombreGuardado) {
         nombreInput.value = nombreGuardado;
         mostrarSaludo(nombreGuardado);
+    } else if (nombreInput.value.trim()) {
+        // Por si el navegador autocompletó el campo
+        mostrarSaludo(nombreInput.value.trim());
     }
     nombreInput.addEventListener('input', () => {
         if (nombreInput.value.trim()) mostrarSaludo(nombreInput.value.trim());

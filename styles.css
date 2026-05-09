@@ -31,7 +31,13 @@ body {
     font-weight: 600;
     color: #27ae60;
     margin-bottom: 12px;
-    min-height: 24px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    padding: 4px 8px;
+}
+
+.saludo:empty {
+    display: none;
 }
 
 h2 {
