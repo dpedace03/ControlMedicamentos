@@ -24,6 +24,7 @@ let registrosMed   = [];
 let registrosSat   = [];
 let registrosSueno = [];
 let registrosStock = [];
+let registrosComida = [];
 let tipoHistorial  = 'med';
 let periodoActivo  = 'dia';
 
@@ -96,12 +97,20 @@ function renderizarHistorial() {
     contenedor.innerHTML = "";
 
     let lista = [];
-    if (tipoHistorial === 'med')   lista = registrosMed;
-    if (tipoHistorial === 'sat')   lista = registrosSat;
-    if (tipoHistorial === 'sueno') lista = registrosSueno;
+    if (tipoHistorial === 'med')    lista = registrosMed;
+    if (tipoHistorial === 'sat')    lista = registrosSat;
+    if (tipoHistorial === 'sueno')  lista = registrosSueno;
+    if (tipoHistorial === 'comida') lista = registrosComida;
 
     if (filtroFecha) lista = lista.filter(r => r.fecha === filtroFecha);
     if (filtroMed && tipoHistorial === 'med') lista = lista.filter(r => r.medicamento === filtroMed);
+
+    // Ordenar descendente por fecha y hora (por si timestamps no estuvieran)
+    lista = [...lista].sort((a, b) => {
+        const ka = `${a.fecha || ''} ${a.hora || ''}`;
+        const kb = `${b.fecha || ''} ${b.hora || ''}`;
+        return kb.localeCompare(ka);
+    });
 
     if (lista.length === 0) {
         contenedor.innerHTML = "<p class='sin-resultados'>No hay registros.</p>";
@@ -110,7 +119,10 @@ function renderizarHistorial() {
 
     lista.forEach(reg => {
         const div = document.createElement('div');
-        div.className = `card-registro ${tipoHistorial === 'sat' ? 'sat' : (tipoHistorial === 'sueno' ? 'sueno' : '')}`;
+        const claseExtra = tipoHistorial === 'sat' ? 'sat'
+                          : tipoHistorial === 'sueno' ? 'sueno'
+                          : tipoHistorial === 'comida' ? 'comida' : '';
+        div.className = `card-registro ${claseExtra}`;
 
         const normalizar = (s) => (s || '')
             .toString()
@@ -138,6 +150,19 @@ function renderizarHistorial() {
             cuerpo = `
                 <strong>${reg.estado}</strong><br>
                 ${reg.observaciones ? `<em style="color:#666; font-size:0.85rem;">"${reg.observaciones}"</em><br>` : ''}
+                <small>${reg.fecha} | ${reg.hora} | Por: <strong>${reg.nombre}</strong></small>
+                <div class="dispositivo">📱 ${reg.dispositivo || 'Sin dispositivo'}</div>
+            `;
+        } else if (tipoHistorial === 'comida') {
+            const tipoLabel = {
+                DES: '🥐 Desayuno',
+                ALM: '🍽️ Almuerzo',
+                MER: '☕ Merienda',
+                CEN: '🌙 Cena'
+            }[reg.tipo] || reg.tipo;
+            cuerpo = `
+                <strong>${tipoLabel}</strong><br>
+                ${reg.texto ? `<em style="color:#444; font-size:0.9rem;">"${reg.texto}"</em><br>` : ''}
                 <small>${reg.fecha} | ${reg.hora} | Por: <strong>${reg.nombre}</strong></small>
                 <div class="dispositivo">📱 ${reg.dispositivo || 'Sin dispositivo'}</div>
             `;
@@ -386,9 +411,19 @@ function eliminarRegistro(tipo, key) {
         return;
     }
 
-    const tabla = tipo === 'med' ? 'registros' : (tipo === 'sat' ? 'SAT' : 'Sueño');
-    const lista = tipo === 'med' ? registrosMed   : (tipo === 'sat' ? registrosSat : registrosSueno);
-    const reg   = lista.find(r => r._key === key);
+    const tabla = tipo === 'med'    ? 'registros'
+                : tipo === 'sat'    ? 'SAT'
+                : tipo === 'sueno'  ? 'Sueño'
+                : tipo === 'comida' ? 'Comidas'
+                : null;
+
+    const lista = tipo === 'med'    ? registrosMed
+                : tipo === 'sat'    ? registrosSat
+                : tipo === 'sueno'  ? registrosSueno
+                : tipo === 'comida' ? registrosComida
+                : [];
+
+    const reg = lista.find(r => r._key === key);
 
     if (!reg) { alert("Registro no encontrado."); return; }
 
@@ -399,9 +434,10 @@ function eliminarRegistro(tipo, key) {
 
     // Confirmación
     let descripcion = "";
-    if (tipo === 'med')   descripcion = `toma de ${reg.medicamento} (${reg.cantidad}) del ${reg.fecha} ${reg.hora}`;
-    if (tipo === 'sat')   descripcion = `medición de saturación ${reg.sat} del ${reg.fecha} ${reg.hora}`;
-    if (tipo === 'sueno') descripcion = `registro de sueño "${reg.estado}" del ${reg.fecha} ${reg.hora}`;
+    if (tipo === 'med')    descripcion = `toma de ${reg.medicamento} (${reg.cantidad}) del ${reg.fecha} ${reg.hora}`;
+    if (tipo === 'sat')    descripcion = `medición de saturación ${reg.sat} del ${reg.fecha} ${reg.hora}`;
+    if (tipo === 'sueno')  descripcion = `registro de sueño "${reg.estado}" del ${reg.fecha} ${reg.hora}`;
+    if (tipo === 'comida') descripcion = `comida (${reg.tipo}) del ${reg.fecha} ${reg.hora}`;
 
     if (!confirm(`¿Seguro que querés eliminar el registro?\n\n${descripcion}`)) return;
 
@@ -610,6 +646,11 @@ window.onload = function() {
     database.ref('Stock').on('value', (snapshot) => {
         registrosStock = snapshotALista(snapshot);
         renderizarTablaStock();
+    });
+
+    database.ref('Comidas').on('value', (snapshot) => {
+        registrosComida = snapshotALista(snapshot);
+        renderizarHistorial();
     });
 
     // ── Tabs del historial ──
@@ -967,6 +1008,51 @@ window.onload = function() {
             .then(() => {
                 cerrarModal('modalSueno');
                 mostrarStatus("✅ Sueño registrado", 'success');
+            })
+            .catch(error => alert("Error al guardar: " + error.message));
+    });
+
+    // ── Botones de comidas (DES / ALM / MER / CEN) ──
+    const comidaTitulo = document.getElementById('comidaTitulo');
+    const comidaTexto  = document.getElementById('comidaTexto');
+    let comidaTipoActual = null;
+
+    document.querySelectorAll('.btn-comida').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!obtenerNombre()) return;
+            comidaTipoActual = btn.dataset.tipo;
+            const emoji = btn.textContent.split(' ')[0];
+            comidaTitulo.textContent = `${emoji} ${btn.dataset.nombre}`;
+            comidaTexto.value = "";
+            abrirModal('modalComida');
+            setTimeout(() => comidaTexto.focus(), 100);
+        });
+    });
+
+    document.getElementById('btnGuardarComida').addEventListener('click', () => {
+        const nombre = obtenerNombre();
+        if (!nombre) return;
+
+        const texto = comidaTexto.value.trim();
+        if (!texto) {
+            alert("Escribí qué comió antes de guardar.");
+            return;
+        }
+
+        const { fecha, hora } = obtenerFechaHoraActual();
+        const registroComida = {
+            fecha, hora,
+            tipo:        comidaTipoActual,
+            texto,
+            nombre,
+            dispositivo: detectarDispositivo(),
+            timestamp:   firebase.database.ServerValue.TIMESTAMP
+        };
+
+        database.ref('Comidas').push(registroComida)
+            .then(() => {
+                cerrarModal('modalComida');
+                mostrarStatus(`✅ ${comidaTipoActual} registrado`, 'success');
             })
             .catch(error => alert("Error al guardar: " + error.message));
     });

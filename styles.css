@@ -126,6 +126,28 @@ button:hover { background: #219150; }
 .btn-sueno { background: #9b59b6; }
 .btn-sueno:hover { background: #8e44ad; }
 
+.btn-comida {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    padding: 10px 4px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    color: white;
+}
+
+.btn-des { background: #f39c12; }
+.btn-des:hover { background: #d68910; }
+
+.btn-alm { background: #d35400; }
+.btn-alm:hover { background: #ba4a00; }
+
+.btn-mer { background: #c0392b; }
+.btn-mer:hover { background: #a93226; }
+
+.btn-cen { background: #34495e; }
+.btn-cen:hover { background: #2c3e50; }
+
 .btn-secundario {
     padding: 10px;
     background: #edf2f7;
@@ -333,6 +355,7 @@ button:hover { background: #219150; }
 }
 .tab-hist[data-tipo="sat"].active   { background: #3498db; }
 .tab-hist[data-tipo="sueno"].active { background: #9b59b6; }
+.tab-hist[data-tipo="comida"].active { background: #d35400; }
 
 /* Modal */
 .modal-overlay {
@@ -599,8 +622,9 @@ button:hover { background: #219150; }
     border-color: #e74c3c;
 }
 
-.card-registro.sat   { border-left-color: #3498db; }
-.card-registro.sueno { border-left-color: #9b59b6; }
+.card-registro.sat    { border-left-color: #3498db; }
+.card-registro.sueno  { border-left-color: #9b59b6; }
+.card-registro.comida { border-left-color: #d35400; }
 
 .card-registro .dispositivo {
     color: #aaa;
