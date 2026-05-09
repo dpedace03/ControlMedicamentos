@@ -112,8 +112,14 @@ function renderizarHistorial() {
         const div = document.createElement('div');
         div.className = `card-registro ${tipoHistorial === 'sat' ? 'sat' : (tipoHistorial === 'sueno' ? 'sueno' : '')}`;
 
-        const nombreActual = (document.getElementById('nombre').value || '').trim().toLowerCase();
-        const esPropio = nombreActual && reg.nombre && reg.nombre.trim().toLowerCase() === nombreActual;
+        const normalizar = (s) => (s || '')
+            .toString()
+            .trim()
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // sin tildes
+
+        const nombreActual = normalizar(document.getElementById('nombre').value);
+        const esPropio = nombreActual && normalizar(reg.nombre) === nombreActual;
 
         let cuerpo = "";
         if (tipoHistorial === 'med') {
@@ -371,7 +377,10 @@ function registrarLog(textoAccion) {
 
 // ── Eliminar registro (solo si lo creó la misma persona) ──
 function eliminarRegistro(tipo, key) {
-    const nombreActual = (document.getElementById('nombre').value || '').trim().toLowerCase();
+    const normalizar = (s) => (s || '').toString().trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    const nombreActual = normalizar(document.getElementById('nombre').value);
     if (!nombreActual) {
         alert("Ingresá tu nombre primero.");
         return;
@@ -383,7 +392,7 @@ function eliminarRegistro(tipo, key) {
 
     if (!reg) { alert("Registro no encontrado."); return; }
 
-    if ((reg.nombre || '').trim().toLowerCase() !== nombreActual) {
+    if (normalizar(reg.nombre) !== nombreActual) {
         alert("Solo podés eliminar registros que vos mismo cargaste.");
         return;
     }
