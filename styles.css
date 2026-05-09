@@ -22,7 +22,7 @@ body {
     width: 100%;
     max-width: 450px;
     margin: auto;
-    padding-bottom: 80px;
+    padding-bottom: 100px;
 }
 
 .saludo {
@@ -64,7 +64,7 @@ label {
     font-size: 0.9rem;
 }
 
-input, select {
+input, select, textarea {
     width: 100%;
     padding: 12px;
     border: 2px solid #edf2f7;
@@ -73,7 +73,10 @@ input, select {
     outline: none;
     background: #fff;
     color: #333;
+    font-family: inherit;
 }
+
+textarea { resize: vertical; }
 
 .hint {
     font-size: 0.75rem;
@@ -89,13 +92,39 @@ button {
     color: white;
     border: none;
     border-radius: 10px;
-    font-size: 1.6rem;
+    font-size: 1rem;
     font-weight: bold;
     cursor: pointer;
     transition: background 0.3s;
 }
 
 button:hover { background: #219150; }
+
+/* Fila botones acción */
+.botones-fila {
+    display: flex;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.btn-principal {
+    flex: 2;
+    background: #27ae60;
+    font-size: 1rem;
+}
+
+.btn-accion {
+    flex: 1;
+    padding: 12px 8px;
+    font-size: 0.9rem;
+    border-radius: 10px;
+}
+
+.btn-sat   { background: #3498db; }
+.btn-sat:hover { background: #2980b9; }
+
+.btn-sueno { background: #9b59b6; }
+.btn-sueno:hover { background: #8e44ad; }
 
 .btn-secundario {
     padding: 10px;
@@ -107,11 +136,18 @@ button:hover { background: #219150; }
 }
 .btn-secundario:hover { background: #dce3ec; }
 
-/* ── Botón flotante ── */
-.btn-flotante {
+/* Botones flotantes */
+.botones-flotantes {
     position: fixed;
     bottom: 24px;
     right: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 100;
+}
+
+.btn-flotante {
     width: auto;
     padding: 12px 20px;
     background: #2c3e50;
@@ -123,14 +159,170 @@ button:hover { background: #219150; }
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(0,0,0,0.25);
     transition: background 0.3s, transform 0.2s;
-    z-index: 100;
 }
 .btn-flotante:hover {
     background: #1a252f;
     transform: scale(1.05);
 }
 
-/* ── Modal ── */
+.btn-informe { background: #e67e22; }
+.btn-informe:hover { background: #d35400; }
+
+.btn-stock { background: #16a085; }
+.btn-stock:hover { background: #117a65; }
+
+/* Lista de medicamentos en modal Stock */
+.fila-stock {
+    background: #f8fafc;
+    border-left: 4px solid #16a085;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+}
+
+.fila-stock .med-titulo {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+}
+
+.fila-stock .stock-actual {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.fila-stock .stock-actual strong {
+    color: #16a085;
+    font-size: 1rem;
+}
+
+.fila-stock .historial-stock {
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 8px;
+    max-height: 60px;
+    overflow-y: auto;
+    background: #fff;
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+.fila-stock input[type="number"] {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+}
+
+/* ── Tabla Stock Actual (en página principal) ── */
+.stock-section {
+    margin-top: 25px;
+    border-top: 1px solid #eee;
+    padding-top: 15px;
+}
+
+#tablaStockActual {
+    background: #f8fafc;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.fila-stock-actual {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid #eaeaea;
+    font-size: 0.88rem;
+}
+
+.fila-stock-actual:last-child { border-bottom: none; }
+
+.fila-stock-actual .nombre-med {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.fila-stock-actual .valor-stock {
+    font-weight: bold;
+    background: #16a085;
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    min-width: 40px;
+    text-align: center;
+}
+
+.fila-stock-actual.bajo .valor-stock { background: #e74c3c; }
+.fila-stock-actual.cero  .valor-stock { background: #95a5a6; }
+
+/* ── Toast de aviso ── */
+.toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 24px 28px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    z-index: 500;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.05rem;
+    max-width: 80%;
+    animation: toastIn 0.3s ease-out;
+}
+
+.toast.alerta {
+    background: #fff3cd;
+    color: #856404;
+    border: 2px solid #ffc107;
+}
+
+.toast.feliz {
+    background: #d4edda;
+    color: #155724;
+    border: 2px solid #28a745;
+}
+
+.toast .icono-toast {
+    font-size: 3rem;
+    display: block;
+    margin-top: 10px;
+}
+
+@keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+    to   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Tabs historial */
+.tabs-historial {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.tab-hist {
+    flex: 1;
+    padding: 10px;
+    background: #edf2f7;
+    color: #555;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 10px;
+}
+.tab-hist:hover { background: #dce3ec; }
+.tab-hist.active {
+    background: #27ae60;
+    color: white;
+}
+.tab-hist[data-tipo="sat"].active   { background: #3498db; }
+.tab-hist[data-tipo="sueno"].active { background: #9b59b6; }
+
+/* Modal */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -142,17 +334,23 @@ button:hover { background: #219150; }
     padding: 16px;
 }
 
+.modal-overlay:has(.modal-centrado) {
+    align-items: center;
+}
+
 .modal-box {
     background: #fff;
     border-radius: 20px 20px 16px 16px;
     width: 100%;
     max-width: 450px;
-    max-height: 75vh;
+    max-height: 80vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     box-shadow: 0 -4px 30px rgba(0,0,0,0.2);
 }
+
+.modal-centrado { border-radius: 16px; }
 
 .modal-header {
     display: flex;
@@ -162,10 +360,9 @@ button:hover { background: #219150; }
     border-bottom: 1px solid #eee;
 }
 
-.modal-header h3 {
-    margin: 0;
-    font-size: 1rem;
-}
+.modal-header h3 { margin: 0; font-size: 1rem; }
+
+.modal-contenido { padding: 20px; overflow-y: auto; }
 
 .btn-cerrar {
     width: auto;
@@ -185,7 +382,7 @@ button:hover { background: #219150; }
     border-bottom: 1px solid #eee;
 }
 
-.tab-btn {
+.tab-btn, .tab-inf {
     flex: 1;
     padding: 8px;
     font-size: 0.85rem;
@@ -194,11 +391,9 @@ button:hover { background: #219150; }
     border-radius: 8px;
     font-weight: 600;
 }
-.tab-btn:hover { background: #dce3ec; }
-.tab-btn.active {
-    background: #27ae60;
-    color: white;
-}
+.tab-btn:hover, .tab-inf:hover { background: #dce3ec; }
+.tab-btn.active { background: #27ae60; color: white; }
+.tab-inf.active { background: #e67e22; color: white; }
 
 #contenidoTotal {
     overflow-y: auto;
@@ -219,12 +414,12 @@ button:hover { background: #219150; }
 }
 
 .fila-total .med-nombre { font-weight: 600; color: #2c3e50; }
-.fila-total .med-count  { 
-    background: #27ae60; 
-    color: white; 
-    border-radius: 20px; 
-    padding: 2px 10px; 
-    font-weight: bold; 
+.fila-total .med-count {
+    background: #27ae60;
+    color: white;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-weight: bold;
     font-size: 0.85rem;
 }
 
@@ -233,6 +428,110 @@ button:hover { background: #219150; }
     color: #aaa;
     padding: 20px 0;
     font-size: 0.9rem;
+}
+
+/* Resultado SAT */
+.resultado-sat {
+    margin-top: 15px;
+    padding: 16px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    display: none;
+}
+
+.resultado-sat.alerta {
+    background: #fff3cd;
+    color: #856404;
+    border: 2px solid #ffeaa7;
+    display: block;
+}
+
+.resultado-sat.bien {
+    background: #d4edda;
+    color: #155724;
+    border: 2px solid #c3e6cb;
+    display: block;
+}
+
+.resultado-sat.critico {
+    background: #f8d7da;
+    color: #721c24;
+    border: 3px solid #e74c3c;
+    display: block;
+    line-height: 1.5;
+    animation: pulsoCritico 1.2s ease-in-out infinite;
+}
+
+.btn-foto {
+    background: #8e44ad;
+    color: white;
+    margin-bottom: 15px;
+    padding: 12px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+}
+.btn-foto:hover { background: #71368a; }
+.btn-foto:disabled {
+    background: #b39ac4;
+    cursor: not-allowed;
+}
+
+.ocr-estado {
+    background: #e8f4fd;
+    color: #2c3e50;
+    border: 1px solid #aed6f1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.ocr-estado.exito {
+    background: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.ocr-estado.error {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+@keyframes pulsoCritico {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.5); }
+    50%      { box-shadow: 0 0 0 12px rgba(231, 76, 60, 0); }
+}
+
+.icono-grande {
+    font-size: 3rem;
+    display: block;
+    margin-top: 10px;
+}
+
+.resultado-sueno {
+    margin-bottom: 15px;
+    padding: 16px;
+    border-radius: 10px;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    display: none;
+}
+
+.resultado-sueno.alerta {
+    background: #fff3cd;
+    color: #856404;
+    border: 2px solid #ffeaa7;
+}
+
+.resultado-sueno.feliz {
+    background: #d4edda;
+    color: #155724;
+    border: 2px solid #c3e6cb;
 }
 
 /* Historial */
@@ -249,7 +548,7 @@ button:hover { background: #219150; }
     margin-bottom: 12px;
 }
 
-#listaMedicamentos {
+#listaHistorial {
     max-height: 300px;
     overflow-y: auto;
     margin-top: 10px;
@@ -262,7 +561,34 @@ button:hover { background: #219150; }
     margin-bottom: 8px;
     border-radius: 5px;
     font-size: 0.85rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
 }
+
+.card-contenido {
+    flex: 1;
+    min-width: 0;
+}
+
+.btn-eliminar {
+    width: auto;
+    padding: 6px 10px;
+    background: transparent;
+    color: #e74c3c;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    flex-shrink: 0;
+    border: 1px solid transparent;
+}
+.btn-eliminar:hover {
+    background: #fee;
+    border-color: #e74c3c;
+}
+
+.card-registro.sat   { border-left-color: #3498db; }
+.card-registro.sueno { border-left-color: #9b59b6; }
 
 .card-registro .dispositivo {
     color: #aaa;
@@ -285,3 +611,16 @@ button:hover { background: #219150; }
 
 .success { color: #27ae60; }
 .error   { color: #e74c3c; }
+
+/* Informe */
+.contenido-informe {
+    padding: 20px;
+    overflow-y: auto;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    color: #333;
+    flex: 1;
+}
+
+.contenido-informe p { margin-bottom: 12px; }
+.contenido-informe strong { color: #2c3e50; }
