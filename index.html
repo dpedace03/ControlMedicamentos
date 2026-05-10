@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medicamentos</title>
-    <link rel="stylesheet" href="styles.css?v=17">
+    <title>Diario Pupy</title>
+    <link rel="stylesheet" href="styles.css?v=26">
 </head>
 <body>
     <div class="container">
+        <div id="clima" class="clima"></div>
         <div id="saludo" class="saludo"></div>
 
-        <h2>💊 Medicamentos</h2>
+        <h2>📔 Diario Pupy</h2>
         
         <form id="medForm">
             <div class="input-group">
@@ -30,23 +31,22 @@
                 </div>
             </div>
 
-            <div class="input-group">
-                <label>Medicamento</label>
-                <select id="medicamento" required>
-                    <option value="">-- Seleccioná un medicamento --</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label>Cantidad / Dosis</label>
-                <input type="text" id="cantidad" placeholder="Ej: 1 comprimido" value="1" required>
-            </div>
+        <div class="panel-registro">
+            <h3 class="seccion-registro">✏️ Registro</h3>
 
             <div class="botones-fila">
-                <button type="submit" id="btnGuardar" class="btn-principal">💊 Med</button>
+                <button type="button" id="btnGuardar" class="btn-principal">💊 Med</button>
                 <button type="button" id="btnSat" class="btn-accion btn-sat">💉 Sat</button>
                 <button type="button" id="btnSueno" class="btn-accion btn-sueno">😴 Sueño</button>
             </div>
+
+            <div class="botones-fila">
+                <button type="button" class="btn-comida btn-des" data-tipo="DES" data-nombre="Desayuno">🥐 DES</button>
+                <button type="button" class="btn-comida btn-alm" data-tipo="ALM" data-nombre="Almuerzo">🍽️ ALM</button>
+                <button type="button" class="btn-comida btn-mer" data-tipo="MER" data-nombre="Merienda">☕ MER</button>
+                <button type="button" class="btn-comida btn-cen" data-tipo="CEN" data-nombre="Cena">🌙 CEN</button>
+            </div>
+        </div>
         </form>
 
         <div id="statusMessage"></div>
@@ -58,6 +58,7 @@
                 <button type="button" class="tab-hist active" data-tipo="med">💊 Med</button>
                 <button type="button" class="tab-hist" data-tipo="sat">💉 Sat</button>
                 <button type="button" class="tab-hist" data-tipo="sueno">😴 Sueño</button>
+                <button type="button" class="tab-hist" data-tipo="comida">🍽️ Comidas</button>
             </div>
 
             <div class="filtros">
@@ -105,6 +106,29 @@
                 <button class="tab-btn" data-periodo="mes">Mes</button>
             </div>
             <div id="contenidoTotal"></div>
+        </div>
+    </div>
+
+    <!-- Modal Medicamento -->
+    <div id="modalMed" class="modal-overlay" style="display:none;">
+        <div class="modal-box modal-centrado">
+            <div class="modal-header">
+                <h3>💊 Registrar Medicamento</h3>
+                <button class="btn-cerrar" data-cerrar="modalMed">✕</button>
+            </div>
+            <div class="modal-contenido">
+                <div class="input-group">
+                    <label>Medicamento</label>
+                    <select id="medicamento" required>
+                        <option value="">-- Seleccioná un medicamento --</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Cantidad / Dosis</label>
+                    <input type="text" id="cantidad" placeholder="Ej: 1 comprimido" value="1" required>
+                </div>
+                <button type="button" id="btnGuardarMed" class="btn-principal" style="width:100%;">Guardar</button>
+            </div>
         </div>
     </div>
 
@@ -211,12 +235,29 @@
         </div>
     </div>
 
+    <!-- Modal Comida -->
+    <div id="modalComida" class="modal-overlay" style="display:none;">
+        <div class="modal-box modal-centrado">
+            <div class="modal-header">
+                <h3 id="comidaTitulo">🍽️ Comida</h3>
+                <button class="btn-cerrar" data-cerrar="modalComida">✕</button>
+            </div>
+            <div class="modal-contenido">
+                <div class="input-group">
+                    <label>¿Qué comió?</label>
+                    <textarea id="comidaTexto" rows="4" placeholder="Describí qué comió..."></textarea>
+                </div>
+                <button type="button" id="btnGuardarComida" class="btn-principal" style="width:100%;">Guardar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast de avisos -->
     <div id="toast" class="toast" style="display:none;"></div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.4/dist/tesseract.min.js"></script>
-    <script src="apps.js?v=17"></script>
+    <script src="apps.js?v=26"></script>
 </body>
 </html>

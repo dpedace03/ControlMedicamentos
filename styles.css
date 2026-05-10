@@ -22,7 +22,7 @@ body {
     width: 100%;
     max-width: 450px;
     margin: auto;
-    padding-bottom: 100px;
+    padding-bottom: 180px;
 }
 
 .saludo {
@@ -31,7 +31,53 @@ body {
     font-weight: 600;
     color: #27ae60;
     margin-bottom: 12px;
-    min-height: 24px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    padding: 4px 8px;
+}
+
+.saludo:empty {
+    display: none;
+}
+
+.clima {
+    background: linear-gradient(135deg, #fef5e7 0%, #fce4c4 100%);
+    border-radius: 14px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    text-align: left;
+    font-size: 0.85rem;
+    color: #d35400;
+    line-height: 1.4;
+    display: none;
+}
+
+.clima.visible { display: block; }
+
+.clima .clima-temp {
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 2px;
+    color: #d35400;
+}
+
+.clima .clima-icono {
+    font-size: 1.1rem;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.clima .clima-consejo {
+    font-size: 0.8rem;
+    color: #b9551a;
+    margin-top: 2px;
+    font-style: italic;
+}
+
+.clima .clima-error {
+    color: #b9551a;
+    font-size: 0.8rem;
 }
 
 h2 {
@@ -107,17 +153,33 @@ button:hover { background: #219150; }
     margin-top: 5px;
 }
 
-.btn-principal {
-    flex: 2;
-    background: #27ae60;
-    font-size: 1rem;
+.seccion-registro {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #2c3e50;
+    font-size: 1.25rem;
+    border-bottom: 1px solid rgba(44, 62, 80, 0.1);
+    padding-bottom: 8px;
 }
 
-.btn-accion {
-    flex: 1;
+.panel-registro {
+    background: #eef4fb;
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 18px;
+}
+
+.botones-fila > button {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
     padding: 12px 8px;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     border-radius: 10px;
+}
+
+.btn-principal {
+    background: #27ae60;
 }
 
 .btn-sat   { background: #3498db; }
@@ -125,6 +187,28 @@ button:hover { background: #219150; }
 
 .btn-sueno { background: #9b59b6; }
 .btn-sueno:hover { background: #8e44ad; }
+
+.btn-comida {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    padding: 10px 4px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    color: white;
+}
+
+.btn-des { background: #f39c12; }
+.btn-des:hover { background: #d68910; }
+
+.btn-alm { background: #d35400; }
+.btn-alm:hover { background: #ba4a00; }
+
+.btn-mer { background: #c0392b; }
+.btn-mer:hover { background: #a93226; }
+
+.btn-cen { background: #34495e; }
+.btn-cen:hover { background: #2c3e50; }
 
 .btn-secundario {
     padding: 10px;
@@ -139,30 +223,42 @@ button:hover { background: #219150; }
 /* Botones flotantes */
 .botones-flotantes {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
+    bottom: 16px;
+    right: 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     z-index: 100;
 }
 
 .btn-flotante {
     width: auto;
-    padding: 12px 20px;
+    padding: 10px 16px;
     background: #2c3e50;
     color: white;
     border: none;
     border-radius: 50px;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: bold;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(0,0,0,0.25);
     transition: background 0.3s, transform 0.2s;
+    white-space: nowrap;
 }
 .btn-flotante:hover {
     background: #1a252f;
     transform: scale(1.05);
+}
+
+@media (max-width: 500px) {
+    .btn-flotante {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    .botones-flotantes {
+        bottom: 12px;
+        right: 12px;
+    }
 }
 
 .btn-informe { background: #e67e22; }
@@ -216,9 +312,18 @@ button:hover { background: #219150; }
 
 /* ── Tabla Stock Actual (en página principal) ── */
 .stock-section {
-    margin-top: 25px;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
+    margin-top: 18px;
+    background: #c2d4e8;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.stock-section > h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.25rem;
+    border-bottom: 1px solid rgba(44, 62, 80, 0.1);
+    padding-bottom: 8px;
 }
 
 #tablaStockActual {
@@ -321,6 +426,7 @@ button:hover { background: #219150; }
 }
 .tab-hist[data-tipo="sat"].active   { background: #3498db; }
 .tab-hist[data-tipo="sueno"].active { background: #9b59b6; }
+.tab-hist[data-tipo="comida"].active { background: #d35400; }
 
 /* Modal */
 .modal-overlay {
@@ -536,9 +642,18 @@ button:hover { background: #219150; }
 
 /* Historial */
 .history-section {
-    margin-top: 25px;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
+    margin-top: 18px;
+    background: #d6e4f0;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.history-section > h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.25rem;
+    border-bottom: 1px solid rgba(44, 62, 80, 0.1);
+    padding-bottom: 8px;
 }
 
 .filtros {
@@ -587,8 +702,9 @@ button:hover { background: #219150; }
     border-color: #e74c3c;
 }
 
-.card-registro.sat   { border-left-color: #3498db; }
-.card-registro.sueno { border-left-color: #9b59b6; }
+.card-registro.sat    { border-left-color: #3498db; }
+.card-registro.sueno  { border-left-color: #9b59b6; }
+.card-registro.comida { border-left-color: #d35400; }
 
 .card-registro .dispositivo {
     color: #aaa;

@@ -24,6 +24,7 @@ let registrosMed   = [];
 let registrosSat   = [];
 let registrosSueno = [];
 let registrosStock = [];
+let registrosComida = [];
 let tipoHistorial  = 'med';
 let periodoActivo  = 'dia';
 
@@ -46,7 +47,77 @@ function detectarDispositivo() {
     return `${device} / ${os}`;
 }
 
-// ── Saludo ──
+// ── Clima: pide ubicación, llama a Open-Meteo y muestra el cartelito ──
+function obtenerClima() {
+    const cont = document.getElementById('clima');
+    if (!cont) return;
+
+    if (!navigator.geolocation) {
+        cont.classList.add('visible');
+        cont.innerHTML = `<span class="clima-error">No se puede obtener el clima en este navegador.</span>`;
+        return;
+    }
+
+    cont.classList.add('visible');
+    cont.innerHTML = `<span class="clima-error">🌡️ Obteniendo clima...</span>`;
+
+    navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+            const lat = pos.coords.latitude.toFixed(3);
+            const lon = pos.coords.longitude.toFixed(3);
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`;
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error('respuesta no OK');
+                const data = await resp.json();
+                const temp = Math.round(data.current.temperature_2m);
+                renderClima(temp, data.current.weather_code);
+            } catch (err) {
+                console.warn('Error clima:', err);
+                cont.innerHTML = `<span class="clima-error">No se pudo obtener el clima.</span>`;
+            }
+        },
+        (err) => {
+            console.warn('Error geolocalización:', err);
+            cont.innerHTML = `<span class="clima-error">📍 Para ver el clima, permití el acceso a la ubicación.</span>`;
+        },
+        { timeout: 10000, maximumAge: 600000 }
+    );
+}
+
+function renderClima(temp, code) {
+    const cont = document.getElementById('clima');
+    let categoria, icono, consejo;
+
+    if (temp <= 8) {
+        categoria = 'Frío';
+        icono     = '🥶';
+        consejo   = 'Abrigate bien (campera, bufanda, medias gruesas). Buenas opciones: sopas, guisos, infusiones calientes y caldo.';
+    } else if (temp <= 16) {
+        categoria = 'Fresco';
+        icono     = '🧥';
+        consejo   = 'Usá una campera o sweater. Comidas calentitas, té o mate ayudan.';
+    } else if (temp <= 24) {
+        categoria = 'Templado';
+        icono     = '🌤️';
+        consejo   = 'Ropa cómoda, una camisa o remera liviana. Buen momento para comidas balanceadas y frutas.';
+    } else if (temp <= 30) {
+        categoria = 'Cálido';
+        icono     = '☀️';
+        consejo   = 'Ropa fresca y holgada. Tomá mucha agua, comé liviano: ensaladas, frutas, comidas frescas.';
+    } else {
+        categoria = 'Caluroso';
+        icono     = '🔥';
+        consejo   = '¡Mucho calor! Ropa muy liviana, evitá salir al sol del mediodía. Tomá agua frecuentemente y comé frutas, ensaladas, helado.';
+    }
+
+    cont.innerHTML = `
+        <span class="clima-temp"><span class="clima-icono">${icono}</span>${temp}°C — ${categoria}</span>
+        <div class="clima-consejo">${consejo}</div>
+    `;
+}
+
+// ── Saludo según hora ──
 function mostrarSaludo(nombre) {
     const hora = new Date().getHours();
     let saludo = "";
@@ -96,12 +167,20 @@ function renderizarHistorial() {
     contenedor.innerHTML = "";
 
     let lista = [];
-    if (tipoHistorial === 'med')   lista = registrosMed;
-    if (tipoHistorial === 'sat')   lista = registrosSat;
-    if (tipoHistorial === 'sueno') lista = registrosSueno;
+    if (tipoHistorial === 'med')    lista = registrosMed;
+    if (tipoHistorial === 'sat')    lista = registrosSat;
+    if (tipoHistorial === 'sueno')  lista = registrosSueno;
+    if (tipoHistorial === 'comida') lista = registrosComida;
 
     if (filtroFecha) lista = lista.filter(r => r.fecha === filtroFecha);
     if (filtroMed && tipoHistorial === 'med') lista = lista.filter(r => r.medicamento === filtroMed);
+
+    // Ordenar descendente por fecha y hora (por si timestamps no estuvieran)
+    lista = [...lista].sort((a, b) => {
+        const ka = `${a.fecha || ''} ${a.hora || ''}`;
+        const kb = `${b.fecha || ''} ${b.hora || ''}`;
+        return kb.localeCompare(ka);
+    });
 
     if (lista.length === 0) {
         contenedor.innerHTML = "<p class='sin-resultados'>No hay registros.</p>";
@@ -110,10 +189,19 @@ function renderizarHistorial() {
 
     lista.forEach(reg => {
         const div = document.createElement('div');
-        div.className = `card-registro ${tipoHistorial === 'sat' ? 'sat' : (tipoHistorial === 'sueno' ? 'sueno' : '')}`;
+        const claseExtra = tipoHistorial === 'sat' ? 'sat'
+                          : tipoHistorial === 'sueno' ? 'sueno'
+                          : tipoHistorial === 'comida' ? 'comida' : '';
+        div.className = `card-registro ${claseExtra}`;
 
-        const nombreActual = (document.getElementById('nombre').value || '').trim().toLowerCase();
-        const esPropio = nombreActual && reg.nombre && reg.nombre.trim().toLowerCase() === nombreActual;
+        const normalizar = (s) => (s || '')
+            .toString()
+            .trim()
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // sin tildes
+
+        const nombreActual = normalizar(document.getElementById('nombre').value);
+        const esPropio = nombreActual && normalizar(reg.nombre) === nombreActual;
 
         let cuerpo = "";
         if (tipoHistorial === 'med') {
@@ -132,6 +220,19 @@ function renderizarHistorial() {
             cuerpo = `
                 <strong>${reg.estado}</strong><br>
                 ${reg.observaciones ? `<em style="color:#666; font-size:0.85rem;">"${reg.observaciones}"</em><br>` : ''}
+                <small>${reg.fecha} | ${reg.hora} | Por: <strong>${reg.nombre}</strong></small>
+                <div class="dispositivo">📱 ${reg.dispositivo || 'Sin dispositivo'}</div>
+            `;
+        } else if (tipoHistorial === 'comida') {
+            const tipoLabel = {
+                DES: '🥐 Desayuno',
+                ALM: '🍽️ Almuerzo',
+                MER: '☕ Merienda',
+                CEN: '🌙 Cena'
+            }[reg.tipo] || reg.tipo;
+            cuerpo = `
+                <strong>${tipoLabel}</strong><br>
+                ${reg.texto ? `<em style="color:#444; font-size:0.9rem;">"${reg.texto}"</em><br>` : ''}
                 <small>${reg.fecha} | ${reg.hora} | Por: <strong>${reg.nombre}</strong></small>
                 <div class="dispositivo">📱 ${reg.dispositivo || 'Sin dispositivo'}</div>
             `;
@@ -371,28 +472,42 @@ function registrarLog(textoAccion) {
 
 // ── Eliminar registro (solo si lo creó la misma persona) ──
 function eliminarRegistro(tipo, key) {
-    const nombreActual = (document.getElementById('nombre').value || '').trim().toLowerCase();
+    const normalizar = (s) => (s || '').toString().trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    const nombreActual = normalizar(document.getElementById('nombre').value);
     if (!nombreActual) {
         alert("Ingresá tu nombre primero.");
         return;
     }
 
-    const tabla = tipo === 'med' ? 'registros' : (tipo === 'sat' ? 'SAT' : 'Sueño');
-    const lista = tipo === 'med' ? registrosMed   : (tipo === 'sat' ? registrosSat : registrosSueno);
-    const reg   = lista.find(r => r._key === key);
+    const tabla = tipo === 'med'    ? 'registros'
+                : tipo === 'sat'    ? 'SAT'
+                : tipo === 'sueno'  ? 'Sueño'
+                : tipo === 'comida' ? 'Comidas'
+                : null;
+
+    const lista = tipo === 'med'    ? registrosMed
+                : tipo === 'sat'    ? registrosSat
+                : tipo === 'sueno'  ? registrosSueno
+                : tipo === 'comida' ? registrosComida
+                : [];
+
+    const reg = lista.find(r => r._key === key);
 
     if (!reg) { alert("Registro no encontrado."); return; }
 
-    if ((reg.nombre || '').trim().toLowerCase() !== nombreActual) {
+    if (normalizar(reg.nombre) !== nombreActual) {
         alert("Solo podés eliminar registros que vos mismo cargaste.");
         return;
     }
 
     // Confirmación
     let descripcion = "";
-    if (tipo === 'med')   descripcion = `toma de ${reg.medicamento} (${reg.cantidad}) del ${reg.fecha} ${reg.hora}`;
-    if (tipo === 'sat')   descripcion = `medición de saturación ${reg.sat} del ${reg.fecha} ${reg.hora}`;
-    if (tipo === 'sueno') descripcion = `registro de sueño "${reg.estado}" del ${reg.fecha} ${reg.hora}`;
+    if (tipo === 'med')    descripcion = `toma de ${reg.medicamento} (${reg.cantidad}) del ${reg.fecha} ${reg.hora}`;
+    if (tipo === 'sat')    descripcion = `medición de saturación ${reg.sat} del ${reg.fecha} ${reg.hora}`;
+    if (tipo === 'sueno')  descripcion = `registro de sueño "${reg.estado}" del ${reg.fecha} ${reg.hora}`;
+    if (tipo === 'comida') descripcion = `comida (${reg.tipo}) del ${reg.fecha} ${reg.hora}`;
 
     if (!confirm(`¿Seguro que querés eliminar el registro?\n\n${descripcion}`)) return;
 
@@ -561,11 +676,15 @@ window.onload = function() {
     actualizarValoresDefault();
     poblarSelectores();
     actualizarVisibilidadFiltros();
+    obtenerClima();
 
     const nombreGuardado = localStorage.getItem('nombre_med');
     if (nombreGuardado) {
         nombreInput.value = nombreGuardado;
         mostrarSaludo(nombreGuardado);
+    } else if (nombreInput.value.trim()) {
+        // Por si el navegador autocompletó el campo
+        mostrarSaludo(nombreInput.value.trim());
     }
     nombreInput.addEventListener('input', () => {
         if (nombreInput.value.trim()) mostrarSaludo(nombreInput.value.trim());
@@ -601,6 +720,11 @@ window.onload = function() {
     database.ref('Stock').on('value', (snapshot) => {
         registrosStock = snapshotALista(snapshot);
         renderizarTablaStock();
+    });
+
+    database.ref('Comidas').on('value', (snapshot) => {
+        registrosComida = snapshotALista(snapshot);
+        renderizarHistorial();
     });
 
     // ── Tabs del historial ──
@@ -962,33 +1086,94 @@ window.onload = function() {
             .catch(error => alert("Error al guardar: " + error.message));
     });
 
-    // ── Guardar registro de medicamento ──
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
+    // ── Botones de comidas (DES / ALM / MER / CEN) ──
+    const comidaTitulo = document.getElementById('comidaTitulo');
+    const comidaTexto  = document.getElementById('comidaTexto');
+    let comidaTipoActual = null;
 
+    document.querySelectorAll('.btn-comida').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (!obtenerNombre()) return;
+            comidaTipoActual = btn.dataset.tipo;
+            const emoji = btn.textContent.split(' ')[0];
+            comidaTitulo.textContent = `${emoji} ${btn.dataset.nombre}`;
+            comidaTexto.value = "";
+            abrirModal('modalComida');
+            setTimeout(() => comidaTexto.focus(), 100);
+        });
+    });
+
+    document.getElementById('btnGuardarComida').addEventListener('click', () => {
+        const nombre = obtenerNombre();
+        if (!nombre) return;
+
+        const texto = comidaTexto.value.trim();
+        if (!texto) {
+            alert("Escribí qué comió antes de guardar.");
+            return;
+        }
+
+        const { fecha, hora } = obtenerFechaHoraActual();
+        const registroComida = {
+            fecha, hora,
+            tipo:        comidaTipoActual,
+            texto,
+            nombre,
+            dispositivo: detectarDispositivo(),
+            timestamp:   firebase.database.ServerValue.TIMESTAMP
+        };
+
+        database.ref('Comidas').push(registroComida)
+            .then(() => {
+                cerrarModal('modalComida');
+                mostrarStatus(`✅ ${comidaTipoActual} registrado`, 'success');
+            })
+            .catch(error => alert("Error al guardar: " + error.message));
+    });
+
+    // ── Botón MED (abre modal) ──
+    document.getElementById('btnGuardar').addEventListener('click', () => {
+        if (!obtenerNombre()) return;
+        document.getElementById('medicamento').value = "";
+        document.getElementById('cantidad').value    = "1";
+        abrirModal('modalMed');
+    });
+
+    // ── Guardar registro de medicamento (desde modal) ──
+    document.getElementById('btnGuardarMed').addEventListener('click', function() {
         const nombre = nombreInput.value.trim();
         if (!nombre) { alert("Ingresá tu nombre."); return; }
         localStorage.setItem('nombre_med', nombre);
+
+        const medicamento = document.getElementById('medicamento').value;
+        const cantidad    = document.getElementById('cantidad').value.trim();
+
+        if (!medicamento) {
+            alert("Seleccioná un medicamento.");
+            return;
+        }
+        if (!cantidad) {
+            alert("Ingresá la cantidad / dosis.");
+            return;
+        }
 
         const nuevoRegistro = {
             nombre,
             dispositivo: detectarDispositivo(),
             fecha:       document.getElementById('fecha').value,
             hora:        document.getElementById('hora').value,
-            medicamento: document.getElementById('medicamento').value,
-            cantidad:    document.getElementById('cantidad').value,
+            medicamento,
+            cantidad,
             timestamp:   firebase.database.ServerValue.TIMESTAMP
         };
 
         database.ref('registros').push(nuevoRegistro)
             .then(() => {
-                document.getElementById('medicamento').value = "";
-                document.getElementById('cantidad').value    = "1";
+                cerrarModal('modalMed');
                 actualizarValoresDefault();
                 mostrarStatus("✅ Guardado correctamente", 'success');
 
                 // Chequear stock bajo después de la resta
-                // (registrosMed se actualiza por el listener de Firebase, pero esperamos un tick)
                 setTimeout(() => {
                     const stockActual = calcularStockActual();
                     const stockMed = stockActual[nuevoRegistro.medicamento];
@@ -1013,4 +1198,7 @@ window.onload = function() {
                 mostrarStatus("❌ Error al guardar: " + error.message, 'error');
             });
     });
+
+    // Evitar submit del form (para que Enter no recargue)
+    form.addEventListener('submit', e => e.preventDefault());
 };
