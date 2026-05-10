@@ -1060,33 +1060,49 @@ window.onload = function() {
             .catch(error => alert("Error al guardar: " + error.message));
     });
 
-    // ── Guardar registro de medicamento ──
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
+    // ── Botón MED (abre modal) ──
+    document.getElementById('btnGuardar').addEventListener('click', () => {
+        if (!obtenerNombre()) return;
+        document.getElementById('medicamento').value = "";
+        document.getElementById('cantidad').value    = "1";
+        abrirModal('modalMed');
+    });
 
+    // ── Guardar registro de medicamento (desde modal) ──
+    document.getElementById('btnGuardarMed').addEventListener('click', function() {
         const nombre = nombreInput.value.trim();
         if (!nombre) { alert("Ingresá tu nombre."); return; }
         localStorage.setItem('nombre_med', nombre);
+
+        const medicamento = document.getElementById('medicamento').value;
+        const cantidad    = document.getElementById('cantidad').value.trim();
+
+        if (!medicamento) {
+            alert("Seleccioná un medicamento.");
+            return;
+        }
+        if (!cantidad) {
+            alert("Ingresá la cantidad / dosis.");
+            return;
+        }
 
         const nuevoRegistro = {
             nombre,
             dispositivo: detectarDispositivo(),
             fecha:       document.getElementById('fecha').value,
             hora:        document.getElementById('hora').value,
-            medicamento: document.getElementById('medicamento').value,
-            cantidad:    document.getElementById('cantidad').value,
+            medicamento,
+            cantidad,
             timestamp:   firebase.database.ServerValue.TIMESTAMP
         };
 
         database.ref('registros').push(nuevoRegistro)
             .then(() => {
-                document.getElementById('medicamento').value = "";
-                document.getElementById('cantidad').value    = "1";
+                cerrarModal('modalMed');
                 actualizarValoresDefault();
                 mostrarStatus("✅ Guardado correctamente", 'success');
 
                 // Chequear stock bajo después de la resta
-                // (registrosMed se actualiza por el listener de Firebase, pero esperamos un tick)
                 setTimeout(() => {
                     const stockActual = calcularStockActual();
                     const stockMed = stockActual[nuevoRegistro.medicamento];
@@ -1111,4 +1127,7 @@ window.onload = function() {
                 mostrarStatus("❌ Error al guardar: " + error.message, 'error');
             });
     });
+
+    // Evitar submit del form (para que Enter no recargue)
+    form.addEventListener('submit', e => e.preventDefault());
 };

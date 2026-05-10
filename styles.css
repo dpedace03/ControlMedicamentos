@@ -113,6 +113,15 @@ button:hover { background: #219150; }
     margin-top: 5px;
 }
 
+.seccion-registro {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+    font-size: 1.25rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
 .botones-fila > button {
     flex: 1 1 0;
     width: auto;
