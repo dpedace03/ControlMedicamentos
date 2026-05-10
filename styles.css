@@ -114,12 +114,19 @@ button:hover { background: #219150; }
 }
 
 .seccion-registro {
-    margin-top: 20px;
-    margin-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 12px;
     color: #2c3e50;
     font-size: 1.25rem;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid rgba(44, 62, 80, 0.1);
     padding-bottom: 8px;
+}
+
+.panel-registro {
+    background: #eef4fb;
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 18px;
 }
 
 .botones-fila > button {
@@ -265,9 +272,18 @@ button:hover { background: #219150; }
 
 /* ── Tabla Stock Actual (en página principal) ── */
 .stock-section {
-    margin-top: 25px;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
+    margin-top: 18px;
+    background: #c2d4e8;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.stock-section > h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.25rem;
+    border-bottom: 1px solid rgba(44, 62, 80, 0.1);
+    padding-bottom: 8px;
 }
 
 #tablaStockActual {
@@ -586,9 +602,18 @@ button:hover { background: #219150; }
 
 /* Historial */
 .history-section {
-    margin-top: 25px;
-    border-top: 1px solid #eee;
-    padding-top: 15px;
+    margin-top: 18px;
+    background: #d6e4f0;
+    border-radius: 14px;
+    padding: 16px;
+}
+
+.history-section > h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.25rem;
+    border-bottom: 1px solid rgba(44, 62, 80, 0.1);
+    padding-bottom: 8px;
 }
 
 .filtros {
